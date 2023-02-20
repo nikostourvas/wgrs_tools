@@ -178,7 +178,7 @@ RUN wget https://github.com/vcftools/vcftools/releases/download/v0.1.16/vcftools
 #	&& cmake --install .
 
 # Install easySFS
-RUN apt update && apt install python3-numpy python3-pandas python3-scipy
+RUN apt update && apt -y install python3-numpy python3-pandas python3-scipy
 RUN git clone https://github.com/isaacovercast/easySFS.git \
 	&& cd easySFS \
 	&& chmod 777 easySFS.py
