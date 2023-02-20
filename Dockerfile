@@ -170,12 +170,12 @@ RUN wget https://github.com/vcftools/vcftools/releases/download/v0.1.16/vcftools
 	&& make install
 
 # Install vcflib
-RUN git clone --recursive https://github.com/vcflib/vcflib.git \
-	&& cd vcflib \
-	&& mkdir -p build && cd build \
-	&& cmake -DCMAKE_BUILD_TYPE=Debug -DZIG=OFF -DOPENMP=OFF .. \
-	&& cmake --build . \
-	&& cmake --install .
+#RUN git clone --recursive https://github.com/vcflib/vcflib.git \
+#	&& cd vcflib \
+#	&& mkdir -p build && cd build \
+#	&& cmake -DCMAKE_BUILD_TYPE=Debug -DZIG=OFF -DOPENMP=OFF .. \
+#	&& cmake --build . \
+#	&& cmake --install .
 
 # Install easySFS
 RUN apt update && apt install python3-numpy python3-pandas python3-scipy
