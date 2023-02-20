@@ -192,10 +192,10 @@ RUN wget https://www.kingrelatedness.com/Linux-king.tar.gz \
 	&& ln -s /home/rstudio/software/king /usr/local/bin/king
 
 # Install PopLDdecay
-RUN git clone https://github.com/hewm2008/PopLDdecay.git \
-    cd PopLDdecay; chmod 755 configure; ./configure; \
-    make; \
-    mv PopLDdecay  bin/;    #     [rm *.o]
+#RUN git clone https://github.com/hewm2008/PopLDdecay.git \
+#    cd PopLDdecay; chmod 755 configure; ./configure; \
+#    make; \
+#    mv PopLDdecay  bin/;    #     [rm *.o]
 
 # Install ANGSD
 RUN git clone --recurse-submodules https://github.com/samtools/htslib.git; \
