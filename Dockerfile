@@ -15,6 +15,7 @@ RUN apt update && apt -y install \
 	vim \
 	tree \
 	time \
+	cmake \
 	parallel \
 	default-jre \
 	bwa \
