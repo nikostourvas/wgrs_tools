@@ -121,13 +121,13 @@ RUN wget http://ccb.jhu.edu/software/FLASH/FLASH-1.2.11.tar.gz \
 	&& tar -xvf FLASH-1.2.11.tar.gz && rm FLASH-1.2.11.tar.gz \
 	&& cd FLASH-1.2.11 \
 	&& make \
-	&& ln -s /home/rstudio/software/FLASH-1.2.11/flash /usr/local/bin/flash
+	&& cp /home/rstudio/software/FLASH-1.2.11/flash /usr/local/bin/flash
 	
 # Install bedtools
 RUN wget https://github.com/arq5x/bedtools2/releases/download/v2.30.0/bedtools.static.binary \
 	&& mv bedtools.static.binary bedtools \
 	&& chmod a+x bedtools \
-	&& ln -s /home/rstudio/software/bedtools /usr/local/bin/bedtools
+	&& cp /home/rstudio/software/bedtools /usr/local/bin/bedtools
 
 # Install samtools
 RUN apt -qq update && apt -y install libncurses5-dev libbz2-dev bzip2 liblzma-dev
@@ -159,7 +159,7 @@ RUN wget https://github.com/freebayes/freebayes/releases/download/v1.3.6/freebay
 	&& gunzip freebayes-1.3.6-linux-amd64-static.gz \
 	&& chmod +x freebayes-1.3.6-linux-amd64-static \
 	&& mv freebayes-1.3.6-linux-amd64-static freebayes \
-	&& ln -s /home/rstudio/software/freebayes /usr/local/bin/freebayes
+	&& cp /home/rstudio/software/freebayes /usr/local/bin/freebayes
 
 # Install vcftools
 RUN wget https://github.com/vcftools/vcftools/releases/download/v0.1.16/vcftools-0.1.16.tar.gz \
@@ -189,7 +189,7 @@ RUN wget http://cmpg.unibe.ch/software/fastsimcoal27/downloads/fsc27_linux64.zip
 # Install KING
 RUN wget https://www.kingrelatedness.com/Linux-king.tar.gz \
 	&& tar -xzvf Linux-king.tar.gz \
-	&& ln -s /home/rstudio/software/king /usr/local/bin/king
+	&& cp /home/rstudio/software/king /usr/local/bin/king
 
 # Install PopLDdecay
 #RUN git clone https://github.com/hewm2008/PopLDdecay.git \
@@ -198,11 +198,28 @@ RUN wget https://www.kingrelatedness.com/Linux-king.tar.gz \
 #    mv PopLDdecay  bin/;    #     [rm *.o]
 
 # Install ANGSD
-RUN git clone --recurse-submodules https://github.com/samtools/htslib.git; \
-	git clone https://github.com/angsd/angsd.git;
+RUN git clone --recurse-submodules https://github.com/samtools/htslib.git \
+        && cd htslib \
+        && make
 
-RUN cd htslib && make
-RUN cd angsd && make HTSSRC=../htslib
+RUN git clone https://github.com/angsd/angsd.git \
+        && cd angsd && make HTSSRC=../htslib
+
+RUN cp -r /home/rstudio/software/angsd/ /usr/local/bin/angsd/
+ENV PATH="$PATH:/usr/local/bin/angsd/"
+
+# Install NgsRelate
+RUN git clone https://github.com/ANGSD/ngsRelate \
+        && cd ngsRelate \
+        && make HTSSRC=../htslib
+RUN cp -r /home/rstudio/software/ngsRelate/ /usr/local/bin/ngsRelate/
+
+# Install Admixture
+RUN wget https://dalexander.github.io/admixture/binaries/admixture_linux-1.3.0.tar.gz \
+	&& tar -xzvf admixture_linux-1.3.0.tar.gz \
+	&& cd dist/admixture_linux-1.3.0 \
+	&& cp /home/rstudio/software/dist/admixture_linux-1.3.0/admixture \
+	/usr/local/bin/admixture
 
 # Install R packages from Bioconductor
 RUN R -e "BiocManager::install(c('qvalue', 'ggtree'))"
@@ -251,6 +268,19 @@ RUN rm -rf /tmp/*.rds \
 	pcadapt \
 	OptM \
 	vcfR \
+	ape \
+	adegenet \
+	pegas \
+	phangorn \
+	phylobase \
+	coalescentMCMC \
+	poppr \
+	psych \
+	genetics \
+	hierfstat \
+	lme4 \
+	MuMIn \
+	vegan
 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 #------------------------------------------------------------------------------
 
