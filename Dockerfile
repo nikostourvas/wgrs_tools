@@ -280,7 +280,7 @@ RUN rm -rf /tmp/*.rds \
 	hierfstat \
 	lme4 \
 	MuMIn \
-	vegan
+	vegan \
 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 #------------------------------------------------------------------------------
 
