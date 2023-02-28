@@ -281,6 +281,7 @@ RUN rm -rf /tmp/*.rds \
 	lme4 \
 	MuMIn \
 	vegan \
+	admixr \
 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 #------------------------------------------------------------------------------
 
