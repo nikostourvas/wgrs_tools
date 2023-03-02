@@ -282,6 +282,7 @@ RUN rm -rf /tmp/*.rds \
 	MuMIn \
 	vegan \
 	admixr \
+	igraph \
 && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 #------------------------------------------------------------------------------
 
