@@ -322,3 +322,11 @@ RUN install2.r --error \
 RUN installGithub.r \
   royfrancis/pophelper \
   && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+
+# Install PopGenome
+RUN installGithub.r \
+  pievos101/PopGenome \
+  && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+
+# Install python2 for old but useful scripts
+RUN apt update && apt install -y python2
