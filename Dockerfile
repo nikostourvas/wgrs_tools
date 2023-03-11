@@ -221,6 +221,16 @@ RUN wget https://dalexander.github.io/admixture/binaries/admixture_linux-1.3.0.t
 	&& cp /home/rstudio/software/dist/admixture_linux-1.3.0/admixture \
 	/usr/local/bin/admixture
 
+# Install Admixtools
+RUN apt update && apt install -y libgsl-dev libblas-dev gfortran liblapack-dev
+RUN wget https://github.com/DReichLab/AdmixTools/archive/refs/tags/v7.0.2.tar.gz \
+        && tar xzvf v7.0.2.tar.gz
+RUN cd AdmixTools-7.0.2/src \
+        && make clobber \
+        && make all \
+        && make install
+RUN cp AdmixTools-7.0.2/bin/* /usr/local/bin/
+
 # Install R packages from Bioconductor
 RUN R -e "BiocManager::install(c('qvalue', 'ggtree'))"
 
@@ -254,13 +264,15 @@ RUN install2.r --error \
 # Some of the R packages depend on libraries not already installed in the
 # base image, so they need to be installed here for the R package
 # installations to succeed.
-#RUN apt-get update \
-#    && apt-get install -y \
-#    libgsl0-dev \
-#    libmagick++-dev \
-#    libudunits2-dev \
-#    gdal-bin \
-#    libgdal-dev
+RUN apt-get update \
+    && apt-get install -y \
+    libgsl0-dev \
+    libmagick++-dev \
+    libudunits2-dev \
+    gdal-bin \
+    libgdal-dev \
+    libglpk40 \
+    ghostscript
 
 ## Install population genetics packages from CRAN
 RUN rm -rf /tmp/*.rds \
