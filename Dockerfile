@@ -104,9 +104,9 @@ RUN mkdir /home/rstudio/software/bayescan \
   && wget http://cmpg.unibe.ch/software/BayeScan/files/BayeScan2.1.zip \
   && unzip BayeScan2.1.zip \
   && rm -rf BayeScan2.1.zip \
-  && cp /home/rstudio/software/bayescan/BayeScan2.1/binaries/BayeScan2.1_linux64bits /usr/local/bin/bayescan
-  #&& cd /home/rstudio/software/bayescan/BayeScan2.1/source \
-  #&& make
+  && chmod +rwx /home/rstudio/software/bayescan/BayeScan2.1/binaries/BayeScan2.1_linux64bits \
+  && mv /home/rstudio/software/bayescan/BayeScan2.1/binaries/BayeScan2.1_linux64bits \
+  /usr/local/bin/bayescan
 
 # Install TreeMix
 RUN apt update && apt -y install libboost-all-dev libgsl0-dev \
