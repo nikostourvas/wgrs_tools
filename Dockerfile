@@ -231,6 +231,11 @@ RUN cd AdmixTools-7.0.2/src \
         && make install
 RUN cp AdmixTools-7.0.2/bin/* /usr/local/bin/
 
+# Install pixy
+# make sure to have pip installed previously
+RUN wget -qO- "https://github.com/ksamuk/pixy/archive/refs/tags/1.2.7.beta1.tar.gz" | tar -zx
+RUN pip install pixy-1.2.7.beta1/
+
 # Install R packages from Bioconductor
 RUN R -e "BiocManager::install(c('qvalue', 'ggtree'))"
 
