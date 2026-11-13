@@ -409,6 +409,42 @@ RUN install2.r --error --skipinstalled --repos https://cran.rstudio.com remotes 
 #     && mv fastStructure3 /opt/fastStructure
 # ENV PATH="$PATH:/opt/fastStructure"
 
+# --- SnpEff / SnpSift (official release; Ubuntu's apt package is older, 5.2b) ---
+# Placed after the R layers to keep the build cache. No databases are bundled:
+# on a read-only Apptainer image use `snpEff -dataDir /some/writable/path ...`.
+ARG SNPEFF_VERSION=5_4c
+ARG SNPEFF_SHA256=3b06a1e1f939e7ebd5433387f088c1d3d1e0a7d472d63f39161b1fe9f00adf33
+RUN wget -q https://snpeff-public.s3.amazonaws.com/versions/snpEff_v${SNPEFF_VERSION}_core.zip \
+    && echo "${SNPEFF_SHA256}  snpEff_v${SNPEFF_VERSION}_core.zip" | sha256sum -c - \
+    && unzip -q snpEff_v${SNPEFF_VERSION}_core.zip -d /opt \
+    && rm snpEff_v${SNPEFF_VERSION}_core.zip
+
+# Launcher used instead of the bundled exec/ wrappers, which split quoted
+# arguments (SnpSift filter "QUAL > 30" arrives as three words). Same defaults:
+# -Xm* and -D* go to the JVM, -Xms1g -Xmx8g unless a -Xm option is given.
+COPY --chmod=755 <<'EOF' /opt/snpEff/launcher
+#!/bin/bash
+case "$(basename "$0")" in
+    [Ss]np[Ss]ift) jar=/opt/snpEff/SnpSift.jar ;;
+    *)             jar=/opt/snpEff/snpEff.jar ;;
+esac
+mem=(); props=(); args=()
+for a in "$@"; do
+    case "$a" in
+        -Xm*) mem+=("$a") ;;
+        -D*)  props+=("$a") ;;
+        *)    args+=("$a") ;;
+    esac
+done
+[ ${#mem[@]} -eq 0 ] && mem=(-Xms1g -Xmx8g)
+exec java "${mem[@]}" "${props[@]}" -jar "$jar" "${args[@]}"
+EOF
+RUN for c in snpEff snpeff SnpSift snpsift; do ln -s /opt/snpEff/launcher /usr/local/bin/$c; done \
+    && snpEff -version \
+    && printf '##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nc\t1\t.\tA\tC\t50\tPASS\t.\nc\t2\t.\tA\tC\t10\tPASS\t.\n' > /tmp/t.vcf \
+    && [ "$(SnpSift filter "QUAL > 30" /tmp/t.vcf | grep -vc '^#')" = 1 ] \
+    && rm /tmp/t.vcf
+
 # FINAL CLEANUP
 WORKDIR /home/rstudio
 RUN ldconfig
