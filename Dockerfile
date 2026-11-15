@@ -445,6 +445,17 @@ RUN for c in snpEff snpeff SnpSift snpsift; do ln -s /opt/snpEff/launcher /usr/l
     && [ "$(SnpSift filter "QUAL > 30" /tmp/t.vcf | grep -vc '^#')" = 1 ] \
     && rm /tmp/t.vcf
 
+# Tree and map figures: ggtreeExtra (Bioconductor) + ggnewscale add layers and
+# extra fill/colour scales to ggtree/ggplot2 plots; rnaturalearthdata gives
+# rnaturalearth (installed above) its country/coastline polygons offline.
+# Placed here to keep the R layers above cached. BiocManager::install() does not
+# fail the build on error, hence the library() check.
+RUN install2.r --error --skipinstalled --repos https://cran.rstudio.com \
+        ggnewscale rnaturalearthdata \
+    && R -e "BiocManager::install('ggtreeExtra', update = FALSE, ask = FALSE)" \
+    && Rscript -e 'for (p in c("ggnewscale", "ggtreeExtra", "rnaturalearth", "rnaturalearthdata")) library(p, character.only = TRUE); stopifnot(nrow(ne_countries(scale = "medium")) > 200)' \
+    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+
 # FINAL CLEANUP
 WORKDIR /home/rstudio
 RUN ldconfig
