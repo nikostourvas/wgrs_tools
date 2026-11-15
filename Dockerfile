@@ -456,6 +456,47 @@ RUN install2.r --error --skipinstalled --repos https://cran.rstudio.com \
     && Rscript -e 'for (p in c("ggnewscale", "ggtreeExtra", "rnaturalearth", "rnaturalearthdata")) library(p, character.only = TRUE); stopifnot(nrow(ne_countries(scale = "medium")) > 200)' \
     && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
+# --- 0.1.10 additions (kept at the end so the R layers above stay cached) -----
+# AdmixTools is compiled above, but `make install` leaves its programs in its own
+# bin/ directory, so admixr's d(), f4(), f4ratio() and qpAdm() could not find them
+# (true since 0.1.6). Rocker copies PATH into RStudio sessions at start-up.
+ENV PATH="$PATH:/usr/local/src/AdmixTools-8.0.2/bin"
+RUN command -v qpDstat && command -v qpAdm && command -v convertf \
+    && Rscript -e 'stopifnot(nzchar(Sys.which("qpDstat")))'
+
+# `import pandas` has failed since 0.1.7: Ubuntu's python3-pandas (installed for
+# easySFS above) pulls in python3-numexpr/-bottleneck/-tables built against NumPy 1,
+# and the uv pandas (NumPy 2.x) loads them as optional accelerators. NumPy 2 builds
+# installed with uv into /usr/local come first on sys.path and shadow them.
+RUN uv pip install --system --break-system-packages numexpr bottleneck tables \
+    && python3 -c "import numpy, pandas, numexpr, bottleneck, tables; print('numpy', numpy.__version__, 'pandas', pandas.__version__)"
+
+# Dsuite: D, f4-ratio and f-branch statistics straight from a VCF (AdmixTools
+# needs EIGENSTRAT input). Same pinned commit as delim_tools.
+ARG DSUITE_COMMIT=a547f99599d763c1760548191ea3f62cc58e8ac3
+RUN git clone https://github.com/millanek/Dsuite.git /opt/Dsuite \
+    && git -C /opt/Dsuite checkout ${DSUITE_COMMIT} \
+    && rm -rf /opt/Dsuite/.git \
+    && make -C /opt/Dsuite \
+    && ln -s /opt/Dsuite/Build/Dsuite /usr/local/bin/Dsuite \
+    && printf '#!/bin/bash\nexec python3 /opt/Dsuite/utils/dtools.py "$@"\n' > /usr/local/bin/dtools.py \
+    && printf '#!/bin/bash\nexec python3 /opt/Dsuite/utils/DtriosParallel "$@"\n' > /usr/local/bin/DtriosParallel \
+    && chmod 755 /usr/local/bin/dtools.py /usr/local/bin/DtriosParallel \
+    && Dsuite 2>&1 | grep -q Dtrios \
+    && dtools.py -h > /dev/null && DtriosParallel -h > /dev/null
+
+# GO enrichment of candidate genes (clusterProfiler::enricher() takes a custom
+# term-to-gene table, e.g. Prunus GO annotations; rrvgo reduces redundant terms),
+# plotting helpers (ggVennDiagram for outlier overlap between methods, circlize
+# for genome-wide circular tracks, ggh4x, ggtext), writexl, map helpers
+# (ggspatial, tidyterra) and network graphs (igraph, networkD3, visNetwork).
+RUN install2.r --error --skipinstalled --repos https://cran.rstudio.com \
+        ggVennDiagram circlize ggh4x ggtext writexl ggspatial tidyterra \
+        igraph networkD3 visNetwork \
+    && R -e "BiocManager::install(c('clusterProfiler', 'enrichplot', 'rrvgo', 'GOSemSim', 'AnnotationHub'), update = FALSE, ask = FALSE)" \
+    && Rscript -e 'p <- c("clusterProfiler", "enrichplot", "rrvgo", "GOSemSim", "AnnotationHub", "ggVennDiagram", "circlize", "ggh4x", "ggtext", "writexl", "ggspatial", "tidyterra", "igraph", "networkD3", "visNetwork"); m <- p[!vapply(p, requireNamespace, logical(1), quietly = TRUE)]; if (length(m)) stop("not installed: ", paste(m, collapse = ", "))' \
+    && rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+
 # FINAL CLEANUP
 WORKDIR /home/rstudio
 RUN ldconfig
